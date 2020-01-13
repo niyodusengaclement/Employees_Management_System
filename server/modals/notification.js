@@ -1,10 +1,8 @@
 import nodemailer from 'nodemailer';
-import Nexmo from 'nexmo';
 
 class SendNotification {
   SendNotification(reciever, message) {
     this.sendEmail(reciever, message);
-    this.sendSms(reciever, message);
   }
 
   async sendEmail(reciever, message) {
@@ -28,23 +26,6 @@ class SendNotification {
         The Awesomity Team `,
       };
       return await this.sender.sendMail(this.mailOptions);
-    } catch (err) {
-      return err;
-    }
-  }
-
-  sendSms(reciever, message) {
-    try {
-      this.nexmo = new Nexmo({
-        apiKey: process.env.SMS_API_KEY,
-        apiSecret: process.env.SMS_API_SECRET,
-      });
-
-      const from = 'Awesomity';
-      const to = reciever.phone;
-      const text = `Hi ${reciever.employee_name}, ${message} 
-      The Awesomity Team`;
-      return this.nexmo.message.sendSms(from, to, text);
     } catch (err) {
       return err;
     }
