@@ -264,5 +264,26 @@ class Action {
       });
     }
   }
+
+  async search(req, res) {
+    const input = req.body.search;
+    if (!input) {
+      return res.status(400).json({
+        status: 400,
+        error: 'Input something to search (name, email, nation ID, position)',
+      });
+    }
+    const info = await modal.searchEmployee(input);
+    if (!info) {
+      return res.status(404).json({
+        status: 404,
+        error: 'Employee not found',
+      });
+    }
+    return res.status(200).json({
+      status: 200,
+      data: info,
+    });
+  }
 }
 export default new Action();
