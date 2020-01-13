@@ -1,4 +1,5 @@
 import cloudinary from 'cloudinary';
+import bcrypt from 'bcryptjs';
 import modal from '../modals/modal';
 import validation from '../helpers/validation';
 import register from './register';
@@ -108,6 +109,51 @@ class Action {
       return res.status(401).json({
         status: 401,
         error: 'Invalid confirmation link',
+      });
+    }
+  }
+
+  async login(req, res) {
+    const { error } = validation.signinValidation(req.body);
+    if (error) {
+      return res.status(400).json({
+        status: 400,
+        error: error.details[0].message.split('"').join(''),
+      });
+    }
+    try {
+      const exist = await modal.findManager(req.body.email);
+      if (!exist) {
+        return res.status(401).json({
+          status: 401,
+          error: 'Invalid email or password',
+        });
+      }
+      const isValid = await bcrypt.compare(req.body.password, exist.password);
+      if (!isValid) {
+        return res.status(401).json({
+          status: 401,
+          error: 'Invalid email or password',
+        });
+      }
+      const token = modal.generateToken(exist);
+      return res.status(200).header('x-auth', token).json({
+        status: 200,
+        message: 'Manager is successfully logged in',
+        data: {
+          data: {
+            national_id: exist.national_id,
+            employee_name: exist.employee_name,
+            email: exist.email,
+            phone: exist.phone,
+            token,
+          },
+        },
+      });
+    } catch (err) {
+      return res.status(500).json({
+        status: 500,
+        error: 'Internal Server Error',
       });
     }
   }
