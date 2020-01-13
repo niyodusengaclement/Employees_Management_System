@@ -29,5 +29,13 @@ class Validation {
     };
     return joi.validate(input, validateSchema);
   }
+
+  signinValidation(input) {
+    const validateSchema = {
+      email: joi.string().email().required(),
+      password: joi.string().required(),
+    };
+    return joi.validate(input, validateSchema);
+  }
 }
 export default new Validation();

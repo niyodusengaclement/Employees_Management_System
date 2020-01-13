@@ -67,5 +67,19 @@ class ActionModal {
     const { rows } = await db.query(text, [email]);
     return rows[0];
   }
+
+  generateToken(info) {
+    try {
+      const payload = {
+        email: info.email,
+        names: info.employee_name,
+        status: info.status,
+      };
+      const token = jwt.sign(payload, process.env.SECRET, this.options);
+      return token;
+    } catch (err) {
+      return err;
+    }
+  }
 }
 export default new ActionModal();
