@@ -19,5 +19,6 @@ module.exports = {
     "linebreak-style":0,
     "require-await": 1,
     "class-methods-use-this": 0,
+    "consistent-return": 0,
   },
 };

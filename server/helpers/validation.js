@@ -15,5 +15,19 @@ class Validation {
     };
     return joi.validate(input, validateSchema);
   }
+
+  managerSignupValidation(input) {
+    const validateSchema = {
+      id: joi.optional(),
+      employee_name: joi.string().required(),
+      national_id: joi.string().required().min(16).max(16),
+      passport_photo: joi.optional(),
+      phone: joi.string().required().min(12).max(12),
+      email: joi.string().email().required(),
+      dob: joi.string().required(),
+      password: joi.string().required(),
+    };
+    return joi.validate(input, validateSchema);
+  }
 }
 export default new Validation();
