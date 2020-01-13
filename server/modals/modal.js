@@ -92,5 +92,10 @@ class ActionModal {
     const { rows } = await db.query(text, data);
     return rows[0];
   }
+
+  async searchEmployee(input) {
+    const { rows } = await db.query('SELECT * FROM employees WHERE email = $1 OR national_id = $1 OR phone = $1 OR position = $1 OR employee_name = $1', [input]);
+    return rows[0];
+  }
 }
 export default new ActionModal();
