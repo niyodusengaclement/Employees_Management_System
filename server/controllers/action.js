@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import modal from '../modals/modal';
 import validation from '../helpers/validation';
 import register from './register';
+import db from '../modals/database/index';
 
 cloudinary.config({
   cloud_name: 'broadcaster',
@@ -150,6 +151,112 @@ class Action {
           },
         },
       });
+    } catch (err) {
+      return res.status(500).json({
+        status: 500,
+        error: 'Internal Server Error',
+      });
+    }
+  }
+
+  async delete(req, res) {
+    const id = parseInt(req.params.id, 10);
+    const exist = await modal.findEmployeeById(id);
+    if (!exist) {
+      return res.status(404).json({
+        status: 401,
+        error: 'No Employee with that ID ',
+      });
+    }
+    const { rows } = await db.query('DELETE FROM employees WHERE id=$1 returning *', [id]);
+    return res.status(200).json({
+      status: 200,
+      data: {
+        id: rows[0].id,
+        message: 'Employee has been deleted',
+      },
+    });
+  }
+
+  async activate(req, res) {
+    const id = parseInt(req.params.id, 10);
+    const exist = await modal.findEmployeeById(id);
+    if (!exist) {
+      return res.status(404).json({
+        status: 401,
+        error: 'No Employee with that ID ',
+      });
+    }
+    const { rows } = await db.query(`UPDATE employees SET status = 'active' WHERE id = $1 returning *`, [id]);
+    return res.status(200).json({
+      status: 200,
+      data: {
+        id: rows[0].id,
+        message: 'Employee has been activated',
+        employee_name: rows[0].employee_name,
+      },
+    });
+  }
+
+  async suspend(req, res) {
+    const id = parseInt(req.params.id, 10);
+    const exist = await modal.findEmployeeById(id);
+    if (!exist) {
+      return res.status(404).json({
+        status: 401,
+        error: 'No Employee with that ID ',
+      });
+    }
+    const { rows } = await db.query(`UPDATE employees SET status = 'inactive' WHERE id = $1 returning *`, [id]);
+    return res.status(200).json({
+      status: 200,
+      data: {
+        id: rows[0].id,
+        message: 'Employee has been suspended successfully',
+        employee_name: rows[0].employee_name,
+      },
+    });
+  }
+
+  async edit(req, res) {
+    try {
+      const id = parseInt(req.params.id, 10);
+      const exist = await modal.findEmployeeById(id);
+      if (!exist) {
+        return res.status(404).json({
+          status: 401,
+          error: 'No Employee with that ID ',
+        });
+      }
+      const { error } = validation.employeeSignupValidation(req.body);
+      if (error) {
+        return res.status(400).json({
+          status: 400,
+          error: error.details[0].message.split('"').join(''),
+        });
+      }
+      const employeeInfo = [
+        req.body.employee_name,
+        req.body.national_id,
+        req.body.phone,
+        req.body.email,
+        req.body.dob,
+        req.body.status,
+        req.body.position,
+      ];
+      const info = await modal.updateEmployee([...employeeInfo, id]);
+      if (info) {
+        return res.status(200).json({
+          status: 200,
+          message: 'Employee updated successfully',
+          data: {
+            national_id: info.national_id,
+            employee_name: info.employee_name,
+            email: info.email,
+            phone: info.phone,
+          },
+        });
+      }
     } catch (err) {
       return res.status(500).json({
         status: 500,

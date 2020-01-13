@@ -12,6 +12,11 @@ class ActionModal {
     return rows[0];
   }
 
+  async findEmployeeById(id) {
+    const { rows } = await db.query('SELECT * FROM employees WHERE id = $1 ', [id]);
+    return rows[0];
+  }
+
   async findManager(email, nid, phone) {
     const { rows } = await db.query('SELECT * FROM managers WHERE email = $1 OR national_id = $2 OR phone = $3', [email, nid, phone]);
     return rows[0];
@@ -80,6 +85,12 @@ class ActionModal {
     } catch (err) {
       return err;
     }
+  }
+
+  async updateEmployee(data) {
+    const text = 'UPDATE employees SET employee_name = $1, national_id = $2, phone = $3, email = $4, dob = $5, status = $6, position = $7 WHERE id = $8 returning *';
+    const { rows } = await db.query(text, data);
+    return rows[0];
   }
 }
 export default new ActionModal();
