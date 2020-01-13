@@ -4,6 +4,7 @@ import modal from '../modals/modal';
 import validation from '../helpers/validation';
 import register from './register';
 import db from '../modals/database/index';
+import notification from '../modals/notification';
 
 cloudinary.config({
   cloud_name: 'broadcaster',
@@ -284,6 +285,71 @@ class Action {
       status: 200,
       data: info,
     });
+  }
+
+  async forgetPassword(req, res) {
+    const { error } = validation.emailValidator(req.body);
+    if (error) {
+      return res.status(400).json({
+        status: 400,
+        error: error.details[0].message.split('"').join(''),
+      });
+    }
+    const isExist = await modal.findManager(req.body.email);
+    if (!isExist) {
+      return res.status(404).json({
+        status: 404,
+        error: 'Email not found in our database',
+      });
+    }
+    const token = modal.generateResetToken(isExist);
+    const url = `https://employeesmanagementsystem.herokuapp.com/reset/${isExist.email}/${token}`;
+    const msg = `You've requested a password reset, kindly click this link ${url} to reset your password`;
+    notification.SendNotification(isExist, msg);
+    return res.status(200).json({
+      status: 200,
+      message: 'Link to reset password sent to your email',
+    });
+  }
+
+  async resetPassword(req, res) {
+    const { password, confirmPassword } = req.body;
+    if (!password || password.length < 6) {
+      return res.status(400).json({
+        status: 400,
+        error: 'Password must be atleast 6 characters long',
+      });
+    }
+    if (password !== confirmPassword) {
+      return res.status(400).json({
+        status: 400,
+        error: 'Password don\'t match',
+      });
+    }
+    try {
+      const newPassword = await modal.hashPassword(password);
+      const text = 'UPDATE managers SET password=$1 WHERE email=$2 returning *';
+      const values = [
+        newPassword,
+        req.user.email,
+      ];
+      const { rows } = await db.query(text, values);
+      return res.status(200).json({
+        status: 200,
+        message: 'Password updated successfully',
+        data: {
+          national_id: rows[0].national_id,
+          employee_name: rows[0].employee_name,
+          email: rows[0].email,
+          phone: rows[0].phone,
+        },
+      });
+    } catch (err) {
+      return res.status(500).json({
+        status: 500,
+        error: 'Internal Server Error',
+      });
+    }
   }
 }
 export default new Action();
