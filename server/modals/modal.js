@@ -97,5 +97,19 @@ class ActionModal {
     const { rows } = await db.query('SELECT * FROM employees WHERE email = $1 OR national_id = $1 OR phone = $1 OR position = $1 OR employee_name = $1', [input]);
     return rows[0];
   }
+
+  generateResetToken(info) {
+    try {
+      const payload = {
+        email: info.email,
+        names: info.employee_name,
+        status: info.status,
+      };
+      const token = jwt.sign(payload, info.password, this.options);
+      return token;
+    } catch (err) {
+      return err;
+    }
+  }
 }
 export default new ActionModal();

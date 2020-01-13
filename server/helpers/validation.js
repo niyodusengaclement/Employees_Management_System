@@ -37,5 +37,12 @@ class Validation {
     };
     return joi.validate(input, validateSchema);
   }
+
+  emailValidator(input) {
+    const validateSchema = {
+      email: joi.string().email().required(),
+    };
+    return joi.validate(input, validateSchema);
+  }
 }
 export default new Validation();
