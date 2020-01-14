@@ -4,7 +4,9 @@ import bodyParser from 'body-parser';
 import fileupload from 'express-fileupload';
 import env from 'dotenv';
 import compression from 'compression';
+import { serve, setup } from 'swagger-ui-express';
 import routes from './routes/index';
+import swagger from '../swagger.json';
 
 env.config();
 const app = express();
@@ -18,6 +20,7 @@ app.use(fileupload({
 }));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use('/docs', serve, setup(swagger));
 app.use('/', routes);
 
 app.listen(port, () => {
